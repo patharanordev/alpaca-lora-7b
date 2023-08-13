@@ -1,5 +1,10 @@
 # 🦙🌲🤏 Alpaca-LoRA
 
+> ---
+> This repo forked from [tloen/alpaca-lora](https://github.com/tloen/alpaca-lora), thank you `tloen` for sharing cool model. I worked with `7B` model on my local machine + `RTX4080` via `docker-compose` for training & inference my custom dataset.
+>
+> ---
+
 - 🤗 **Try the pretrained model out [here](https://huggingface.co/spaces/tloen/alpaca-lora), courtesy of a GPU grant from Huggingface!**
 - Users have created a Discord server for discussion and support [here](https://discord.gg/prbq284xX5)
 - 4/14: Chansung Park's GPT4-Alpaca adapters: https://github.com/tloen/alpaca-lora/issues/340

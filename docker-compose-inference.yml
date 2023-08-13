@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  alpaca-lora:
+    container_name: inference
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: "0"
+        BASE_MODEL: "decapoda-research/llama-7b-hf"
+    shm_size: '64gb'
+    volumes:
+      - ./lora-alpaca:/root/.cache # Location downloaded weights will be stored
+    ports:
+      - 7860:7860
+    command: generate.py --load_8bit --base_model $BASE_MODEL --lora_weights 'tloen/alpaca-lora-7b'
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
+    restart: unless-stopped
+
+networks:
+  default:
+    driver: bridge

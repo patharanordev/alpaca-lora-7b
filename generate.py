@@ -16,6 +16,8 @@ if torch.cuda.is_available():
 else:
     device = "cpu"
 
+print(f"Device: {device}")
+
 try:
     if torch.backends.mps.is_available():
         device = "mps"
@@ -25,17 +27,22 @@ except:  # noqa: E722
 
 def main(
     load_8bit: bool = False,
-    base_model: str = "",
+    base_model: str = os.getenv("BASE_MODEL"),
     lora_weights: str = "tloen/alpaca-lora-7b",
     prompt_template: str = "",  # The prompt template to use, will default to alpaca.
     server_name: str = "0.0.0.0",  # Allows to listen on all interfaces by providing '0.
     share_gradio: bool = False,
 ):
-    base_model = base_model or os.environ.get("BASE_MODEL", "")
     assert (
         base_model
     ), "Please specify a --base_model, e.g. --base_model='huggyllama/llama-7b'"
 
+    if base_model is None:
+        return
+    
+    base_model = os.getenv("BASE_MODEL")
+    print(f"Base model: {base_model}")
+    
     prompter = Prompter(prompt_template)
     tokenizer = LlamaTokenizer.from_pretrained(base_model)
     if device == "cuda":

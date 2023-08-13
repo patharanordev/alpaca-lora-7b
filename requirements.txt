@@ -7,6 +7,8 @@ black[jupyter]
 datasets
 fire
 git+https://github.com/huggingface/peft.git
-transformers>=4.28.0
+transformers==4.30.1
 sentencepiece
 gradio
+markdown-it-py==2.2.0
+scipy

@@ -13,3 +13,6 @@ test_data.json
 todo.txt
 .venv
 .vscode
+!lora-alpaca/.gitkeep
+yahma/alpaca-cleaned
+!yahma/alpaca-cleaned/.gitkeep

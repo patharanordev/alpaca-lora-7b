@@ -27,7 +27,7 @@ from utils.prompter import Prompter
 
 def train(
     # model/data params
-    base_model: str = "",  # the only required argument
+    base_model: str = os.getenv("BASE_MODEL"),  # the only required argument
     data_path: str = "yahma/alpaca-cleaned",
     output_dir: str = "./lora-alpaca",
     # training hyperparams
@@ -86,10 +86,15 @@ def train(
     assert (
         base_model
     ), "Please specify a --base_model, e.g. --base_model='huggyllama/llama-7b'"
+    if base_model is None:
+        return
+    
+    base_model = os.getenv("BASE_MODEL")
+    print(f"Base model: {base_model}")
+    print(f"Resume from checkpoint: {resume_from_checkpoint}")
+    
     gradient_accumulation_steps = batch_size // micro_batch_size
-
     prompter = Prompter(prompt_template_name)
-
     device_map = "auto"
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     ddp = world_size != 1
@@ -188,11 +193,13 @@ def train(
     else:
         data = load_dataset(data_path)
 
-    if resume_from_checkpoint:
+    print(f"Resume from checkpoint is not none ?: {(resume_from_checkpoint is not None)}")
+    if resume_from_checkpoint is not None:
         # Check the available weights and load them
         checkpoint_name = os.path.join(
             resume_from_checkpoint, "pytorch_model.bin"
         )  # Full checkpoint
+        print(f"Validaqte checkpoint name: {(checkpoint_name)}")
         if not os.path.exists(checkpoint_name):
             checkpoint_name = os.path.join(
                 resume_from_checkpoint, "adapter_model.bin"
@@ -200,6 +207,7 @@ def train(
             resume_from_checkpoint = (
                 False  # So the trainer won't try loading its state
             )
+            print(f"Validaqte checkpoint name: {(checkpoint_name)}")
         # The two files above have a different name depending on how they were saved, but are actually the same.
         if os.path.exists(checkpoint_name):
             print(f"Restarting from {checkpoint_name}")

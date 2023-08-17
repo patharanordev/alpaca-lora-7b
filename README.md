@@ -2,6 +2,8 @@
 
 > ---
 > This repo forked from [tloen/alpaca-lora](https://github.com/tloen/alpaca-lora), thank you `tloen` for sharing cool model. I worked with `7B` model on my local machine + `RTX4080` via `docker-compose` for training & inference my custom dataset.
+> - Shared cache directory between container and host instead of using container volume to prevent reload the target model when the volume is removed.
+> - Allowed to change model name in compose file.
 >
 > ---
 

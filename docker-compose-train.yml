@@ -2,7 +2,7 @@ version: '3'
 
 services:
   alpaca-lora:
-    container_name: inference
+    container_name: train-alpaca-lora
     build:
       context: ./
       dockerfile: Dockerfile
@@ -11,17 +11,11 @@ services:
         BASE_MODEL: "decapoda-research/llama-7b-hf"
     shm_size: '64gb'
     volumes:
-      - ./cache:/root/.cache # Location downloaded weights will be stored
+      - ./cache:/root/.cache
       - ./lora-alpaca:/workspace/lora-alpaca
     ports:
       - 7860:7860
-
-    # For original weight:
-    #command: generate.py --load_8bit --base_model $BASE_MODEL --lora_weights 'tloen/alpaca-lora-7b'
-
-    # For our turning weight:
-    command: generate.py --load_8bit --base_model $BASE_MODEL --lora_weights '/workspace/lora-alpaca/output/checkpoint-1000'
-
+    command: finetune.py --resume_from_checkpoint '/workspace/lora-alpaca/output/checkpoint-200' --base_model $BASE_MODEL --data_path 'yahma/alpaca-cleaned' --output_dir '/workspace/lora-alpaca/output' --batch_size 128 --micro_batch_size 4 --num_epochs 3 --learning_rate 1e-4 --cutoff_len 512 --val_set_size 2000 --lora_r 8 --lora_alpha 16 --lora_dropout 0.05 --lora_target_modules '[q_proj,v_proj]' --train_on_inputs --group_by_length
     deploy:
       resources:
         reservations:

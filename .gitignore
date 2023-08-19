@@ -12,6 +12,7 @@ test_data.json
 todo.txt
 .venv
 .vscode
+env
 cache/*
 db/*
 lora-alpaca/*
@@ -19,3 +20,4 @@ lora-alpaca/*
 !lora-alpaca/.gitkeep
 !db/initdb
 !db/config
+!db/seeder

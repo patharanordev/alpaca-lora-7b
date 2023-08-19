@@ -5,7 +5,7 @@ from typing import List
 import fire
 import torch
 import transformers
-from datasets import load_dataset
+from datasets import load_dataset, Dataset
 
 """
 Unused imports:
@@ -56,6 +56,7 @@ def train(
     wandb_log_model: str = "",  # options: false | true
     resume_from_checkpoint: str = None,  # either training checkpoint or final adapter
     prompt_template_name: str = "alpaca",  # The prompt template to use, will default to alpaca.
+    source_dataset: str = "huggingface",
 ):
     if int(os.environ.get("LOCAL_RANK", 0)) == 0:
         print(
@@ -82,6 +83,7 @@ def train(
             f"wandb_log_model: {wandb_log_model}\n"
             f"resume_from_checkpoint: {resume_from_checkpoint or False}\n"
             f"prompt template: {prompt_template_name}\n"
+            f"source dataset: {source_dataset}\n"
         )
     assert (
         base_model
@@ -191,7 +193,23 @@ def train(
     if data_path.endswith(".json") or data_path.endswith(".jsonl"):
         data = load_dataset("json", data_files=data_path)
     else:
-        data = load_dataset(data_path)
+        if (source_dataset == "huggingface"):
+            # Data from HuggingFace
+            data = load_dataset(data_path)
+        elif (source_dataset == "postgresql"):
+            data = dict()
+            postgres_uri = "postgresql://{}:{}@{}?port={}&dbname={}".format(
+                os.environ["POSTGRES_DB_USER"],
+                os.environ["POSTGRES_DB_PASS"],
+                os.environ["POSTGRES_DB_HOST"],
+                os.environ["POSTGRES_DB_PORT"],
+                os.environ["POSTGRES_DB_NAME"],
+            )
+            
+            print(f"postgres_uri: {postgres_uri}")
+
+            # align column based on alpaca-lora
+            data["train"] = Dataset.from_sql("select output, instruction, input from gpt4;", postgres_uri)
 
     print(f"Resume from checkpoint is not none ?: {(resume_from_checkpoint is not None)}")
     if resume_from_checkpoint is not None:

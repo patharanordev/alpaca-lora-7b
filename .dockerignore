@@ -7,3 +7,4 @@ db/*
 lora-alpaca/*
 !cache/.gitkeep
 !lora-alpaca/.gitkeep
+env

@@ -5,7 +5,7 @@ from typing import List
 import fire
 import torch
 import transformers
-from datasets import load_dataset
+from datasets import load_dataset, Dataset
 
 """
 Unused imports:
@@ -27,7 +27,7 @@ from utils.prompter import Prompter
 
 def train(
     # model/data params
-    base_model: str = "",  # the only required argument
+    base_model: str = os.getenv("BASE_MODEL"),  # the only required argument
     data_path: str = "yahma/alpaca-cleaned",
     output_dir: str = "./lora-alpaca",
     # training hyperparams
@@ -56,6 +56,7 @@ def train(
     wandb_log_model: str = "",  # options: false | true
     resume_from_checkpoint: str = None,  # either training checkpoint or final adapter
     prompt_template_name: str = "alpaca",  # The prompt template to use, will default to alpaca.
+    source_dataset: str = "huggingface",
 ):
     if int(os.environ.get("LOCAL_RANK", 0)) == 0:
         print(
@@ -82,14 +83,20 @@ def train(
             f"wandb_log_model: {wandb_log_model}\n"
             f"resume_from_checkpoint: {resume_from_checkpoint or False}\n"
             f"prompt template: {prompt_template_name}\n"
+            f"source dataset: {source_dataset}\n"
         )
     assert (
         base_model
     ), "Please specify a --base_model, e.g. --base_model='huggyllama/llama-7b'"
+    if base_model is None:
+        return
+    
+    base_model = os.getenv("BASE_MODEL")
+    print(f"Base model: {base_model}")
+    print(f"Resume from checkpoint: {resume_from_checkpoint}")
+    
     gradient_accumulation_steps = batch_size // micro_batch_size
-
     prompter = Prompter(prompt_template_name)
-
     device_map = "auto"
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     ddp = world_size != 1
@@ -186,13 +193,31 @@ def train(
     if data_path.endswith(".json") or data_path.endswith(".jsonl"):
         data = load_dataset("json", data_files=data_path)
     else:
-        data = load_dataset(data_path)
+        if (source_dataset == "huggingface"):
+            # Data from HuggingFace
+            data = load_dataset(data_path)
+        elif (source_dataset == "postgresql"):
+            data = dict()
+            postgres_uri = "postgresql://{}:{}@{}?port={}&dbname={}".format(
+                os.environ["POSTGRES_DB_USER"],
+                os.environ["POSTGRES_DB_PASS"],
+                os.environ["POSTGRES_DB_HOST"],
+                os.environ["POSTGRES_DB_PORT"],
+                os.environ["POSTGRES_DB_NAME"],
+            )
+            
+            print(f"postgres_uri: {postgres_uri}")
 
-    if resume_from_checkpoint:
+            # align column based on alpaca-lora
+            data["train"] = Dataset.from_sql("select output, instruction, input from gpt4;", postgres_uri)
+
+    print(f"Resume from checkpoint is not none ?: {(resume_from_checkpoint is not None)}")
+    if resume_from_checkpoint is not None:
         # Check the available weights and load them
         checkpoint_name = os.path.join(
             resume_from_checkpoint, "pytorch_model.bin"
         )  # Full checkpoint
+        print(f"Validaqte checkpoint name: {(checkpoint_name)}")
         if not os.path.exists(checkpoint_name):
             checkpoint_name = os.path.join(
                 resume_from_checkpoint, "adapter_model.bin"
@@ -200,6 +225,7 @@ def train(
             resume_from_checkpoint = (
                 False  # So the trainer won't try loading its state
             )
+            print(f"Validaqte checkpoint name: {(checkpoint_name)}")
         # The two files above have a different name depending on how they were saved, but are actually the same.
         if os.path.exists(checkpoint_name):
             print(f"Restarting from {checkpoint_name}")

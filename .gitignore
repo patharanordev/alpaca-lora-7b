@@ -5,7 +5,6 @@ __pycache__/
 checkpoint**
 minimal-llama**
 upload.py
-lora-**
 *ckpt
 wandb
 evaluate.py
@@ -13,6 +12,12 @@ test_data.json
 todo.txt
 .venv
 .vscode
+env
+cache/*
+db/*
+lora-alpaca/*
+!cache/.gitkeep
 !lora-alpaca/.gitkeep
-yahma/alpaca-cleaned
-!yahma/alpaca-cleaned/.gitkeep
+!db/initdb
+!db/config
+!db/seeder

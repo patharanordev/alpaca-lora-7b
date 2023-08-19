@@ -11,10 +11,17 @@ services:
         BASE_MODEL: "decapoda-research/llama-7b-hf"
     shm_size: '64gb'
     volumes:
-      - ./lora-alpaca:/root/.cache # Location downloaded weights will be stored
+      - ./cache:/root/.cache # Location downloaded weights will be stored
+      - ./lora-alpaca:/workspace/lora-alpaca
     ports:
       - 7860:7860
-    command: generate.py --load_8bit --base_model $BASE_MODEL --lora_weights 'tloen/alpaca-lora-7b'
+
+    # For original weight:
+    #command: generate.py --load_8bit --base_model $BASE_MODEL --lora_weights 'tloen/alpaca-lora-7b'
+
+    # For our turning weight:
+    command: generate.py --load_8bit --base_model $BASE_MODEL --lora_weights '/workspace/lora-alpaca/output/checkpoint-1000'
+
     deploy:
       resources:
         reservations:

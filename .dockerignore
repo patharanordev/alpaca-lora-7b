@@ -2,6 +2,9 @@
 .github
 .vscode
 .docker-compose.yml
-lora-**
-yahma/alpaca-cleaned
-!yahma/alpaca-cleaned/.gitkeep
+cache/*
+db/*
+lora-alpaca/*
+!cache/.gitkeep
+!lora-alpaca/.gitkeep
+env

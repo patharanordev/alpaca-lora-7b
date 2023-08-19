@@ -1,0 +1,63 @@
+version: '3'
+
+services:
+  alpaca-lora:
+    container_name: train-alpaca-lora
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: "0"
+        BASE_MODEL: "decapoda-research/llama-7b-hf"
+    shm_size: '64gb'
+    environment:
+      - POSTGRES_DB_USER=postgres
+      - POSTGRES_DB_PASS=alpaca-lora
+      - POSTGRES_DB_HOST=host.docker.internal
+      - POSTGRES_DB_PORT=5419
+      - POSTGRES_DB_NAME=dataset
+    volumes:
+      - ./cache:/root/.cache
+      - ./lora-alpaca:/workspace/lora-alpaca
+    ports:
+      - 7860:7860
+
+    # # Resume from checkpoint
+    # command: finetune.py --resume_from_checkpoint '/workspace/lora-alpaca/output/checkpoint-200' --source_dataset 'postgresql' --base_model $BASE_MODEL --data_path 'yahma/alpaca-cleaned' --output_dir '/workspace/lora-alpaca/output' --batch_size 128 --micro_batch_size 4 --num_epochs 3 --learning_rate 1e-4 --cutoff_len 512 --val_set_size 2000 --lora_r 8 --lora_alpha 16 --lora_dropout 0.05 --lora_target_modules '[q_proj,v_proj]' --train_on_inputs --group_by_length
+    
+    # Start train model without resume
+    command: finetune.py --source_dataset 'postgresql' --base_model $BASE_MODEL --data_path 'yahma/alpaca-cleaned' --output_dir '/workspace/lora-alpaca/output' --batch_size 128 --micro_batch_size 4 --num_epochs 3 --learning_rate 1e-4 --cutoff_len 512 --val_set_size 2000 --lora_r 8 --lora_alpha 16 --lora_dropout 0.05 --lora_target_modules '[q_proj,v_proj]' --train_on_inputs --group_by_length
+    
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
+    restart: unless-stopped
+
+  custom-dataset-db:
+    container_name: custom-dataset-db
+    image: postgres
+    environment:
+      POSTGRES_DB: dataset
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: alpaca-lora
+    ports:
+      - 5419:5432
+    volumes:
+      - ./db/pgdata:/var/lib/postgresql/data
+      - ./db/initdb:/docker-entrypoint-initdb.d
+      - ./db/config/pg_hba.conf:/var/lib/foo/pg_hba.conf
+    command:  ["postgres", "-c", "hba_file=/var/lib/foo/pg_hba.conf"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+networks:
+  default:
+    driver: bridge

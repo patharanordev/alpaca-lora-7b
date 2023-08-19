@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  custom-dataset-db:
+    container_name: custom-dataset-db
+    image: postgres
+    environment:
+      POSTGRES_DB: dataset
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: alpaca-lora
+    ports:
+      - 5419:5432
+    volumes:
+      - ./db/pgdata:/var/lib/postgresql/data
+      - ./db/initdb:/docker-entrypoint-initdb.d
+      - ./db/config/pg_hba.conf:/var/lib/foo/pg_hba.conf
+    command:  ["postgres", "-c", "hba_file=/var/lib/foo/pg_hba.conf"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+networks:
+  default:
+    driver: bridge

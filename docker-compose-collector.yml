@@ -22,6 +22,24 @@ services:
       retries: 5
     restart: always
 
+#   collector:
+#     container_name: collector
+#     build:
+#       context: ./collector
+#       dockerfile: Dockerfile
+#     ports:
+#       - 8080:3000
+#     env_file: ./collector/docker.env
+#     volumes:
+#       - ./collector:/app
+#       - collector-app-volume:/app/node_modules
+#     depends_on:
+#       - custom-dataset-db
+#     restart: always
+
+# volumes:
+#   collector-app-volume:
+
 networks:
   default:
     driver: bridge

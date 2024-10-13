@@ -10,13 +10,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model gpt4 {
-  id    Int     @id @default(autoincrement())
-  instruction String
-  input  String
-  output String
-}
-
 model custom {
   id            Int         @id @default(autoincrement())
   instruction   String

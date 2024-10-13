@@ -2,8 +2,10 @@
 
 # ARG DEBIAN_FRONTEND=noninteractive
 # ARG BASE_MODEL
+# ARG GRADIO_SERVER_PORT=7860
 
 # ENV BASE_MODEL $BASE_MODEL
+# ENV GRADIO_SERVER_PORT=${GRADIO_SERVER_PORT}
 
 # RUN apt-get update && apt-get install -y \
 #     git \
@@ -26,9 +28,15 @@
 # ENTRYPOINT [ "python3.10"]
 
 FROM localhost:5000/nvidia-cuda121-win64:mini-0.0.2 AS base
+
+ARG DEBIAN_FRONTEND=noninteractive
 ARG BASE_MODEL
+ARG GRADIO_SERVER_PORT=7860
 
 ENV BASE_MODEL $BASE_MODEL
+ENV GRADIO_SERVER_PORT=${GRADIO_SERVER_PORT}
+
+WORKDIR /workspace
 
 COPY requirements.txt requirements.txt
 RUN python3.10 -m pip install -r requirements.txt

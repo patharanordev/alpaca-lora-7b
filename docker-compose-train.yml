@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   alpaca-lora:
     container_name: train-alpaca-lora
@@ -22,11 +20,22 @@ services:
     ports:
       - 7860:7860
 
-    # # Resume from checkpoint
-    # command: finetune.py --resume_from_checkpoint '/workspace/lora-alpaca/output/checkpoint-200' --source_dataset 'postgresql' --base_model $BASE_MODEL --data_path 'yahma/alpaca-cleaned' --output_dir '/workspace/lora-alpaca/output' --batch_size 128 --micro_batch_size 4 --num_epochs 3 --learning_rate 1e-4 --cutoff_len 512 --val_set_size 2000 --lora_r 8 --lora_alpha 16 --lora_dropout 0.05 --lora_target_modules '[q_proj,v_proj]' --train_on_inputs --group_by_length
-    
-    # Start train model without resume
-    command: finetune.py --source_dataset 'postgresql' --base_model $BASE_MODEL --data_path 'yahma/alpaca-cleaned' --output_dir '/workspace/lora-alpaca/output' --batch_size 128 --micro_batch_size 4 --num_epochs 3 --learning_rate 1e-4 --cutoff_len 512 --val_set_size 2000 --lora_r 8 --lora_alpha 16 --lora_dropout 0.05 --lora_target_modules '[q_proj,v_proj]' --train_on_inputs --group_by_length
+    # Resume from checkpoint
+    command: finetune.py --resume_from_checkpoint '/workspace/lora-alpaca/output/checkpoint-200' --source_dataset 'postgresql' --base_model $BASE_MODEL --data_path 'yahma/alpaca-cleaned' --output_dir '/workspace/lora-alpaca/output' --batch_size 128 --micro_batch_size 4 --num_epochs 3 --learning_rate 1e-4 --cutoff_len 512 --val_set_size 2000 --lora_r 8 --lora_alpha 16 --lora_dropout 0.05 --lora_target_modules '[q_proj,v_proj]' --train_on_inputs --group_by_length
+    # history:
+    # - 2023-mm-dd => ckp1000 => 5 times => 0.83 epochs
+    # - 2024-03-13 => ckp600 => 3 times => 0.5 epochs
+    # - 2024-03-14 => ckp600 => 3 times => 0.5 epochs
+    # - 2024-03-15 => ckp200 => 1 times => 0.17 epochs
+    # - 2024-03-16 => ckp200 => 1 times => 0.17 epochs
+    # - 2024-03-17 => ckp800 => 3 times => 0.5 epochs
+    # - 2024-03-19 => ckp400 => 2 times => 0.3 epochs
+    # - 2024-03-20 => ckp400 => 2 times => 0.3 epochs
+    # - 2024-03-23 => ckp600 => 3 times => 0.5 epochs
+    # - 2024-03-28 => ckp400 => 2 times => 0.3 epochs <------ next use
+
+    # # Start train model without resume
+    # command: finetune.py --source_dataset 'postgresql' --base_model $BASE_MODEL --data_path 'yahma/alpaca-cleaned' --output_dir '/workspace/lora-alpaca/output' --batch_size 128 --micro_batch_size 4 --num_epochs 3 --learning_rate 1e-4 --cutoff_len 512 --val_set_size 2000 --lora_r 8 --lora_alpha 16 --lora_dropout 0.05 --lora_target_modules '[q_proj,v_proj]' --train_on_inputs --group_by_length
     
     deploy:
       resources:

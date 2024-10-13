@@ -1,11 +1,11 @@
 version: '3'
 
 services:
-  alpaca-lora:
-    container_name: inference
+  poc-llm:
+    container_name: inference-alpaca-lora
     build:
       context: ./
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.inference
       args:
         BUILDKIT_INLINE_CACHE: "0"
         BASE_MODEL: "decapoda-research/llama-7b-hf"
@@ -20,7 +20,7 @@ services:
     #command: generate.py --load_8bit --base_model $BASE_MODEL --lora_weights 'tloen/alpaca-lora-7b'
 
     # For our turning weight:
-    command: generate.py --load_8bit --base_model $BASE_MODEL --lora_weights '/workspace/lora-alpaca/output/checkpoint-1000'
+    command: generate.py --load_8bit --base_model $BASE_MODEL --lora_weights '/workspace/lora-alpaca/output/checkpoint-200'
 
     deploy:
       resources:

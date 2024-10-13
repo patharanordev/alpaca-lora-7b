@@ -17,7 +17,7 @@ from peft import (
     LoraConfig,
     get_peft_model,
     get_peft_model_state_dict,
-    prepare_model_for_int8_training,
+    prepare_model_for_kbit_training,
     set_peft_model_state_dict,
 )
 from transformers import LlamaForCausalLM, LlamaTokenizer
@@ -178,7 +178,7 @@ def train(
             ]  # could be sped up, probably
         return tokenized_full_prompt
 
-    model = prepare_model_for_int8_training(model)
+    model = prepare_model_for_kbit_training(model)
 
     config = LoraConfig(
         r=lora_r,
@@ -205,11 +205,10 @@ def train(
                 os.environ["POSTGRES_DB_PORT"],
                 os.environ["POSTGRES_DB_NAME"],
             )
-            
-            print(f"postgres_uri: {postgres_uri}")
 
             # align column based on alpaca-lora
             data["train"] = Dataset.from_sql("select output, instruction, input from gpt4;", postgres_uri)
+            print("Load dataset from postgres successfully.")
 
     print(f"Resume from checkpoint is not none ?: {(resume_from_checkpoint is not None)}")
     if resume_from_checkpoint is not None:
@@ -229,7 +228,7 @@ def train(
         # The two files above have a different name depending on how they were saved, but are actually the same.
         if os.path.exists(checkpoint_name):
             print(f"Restarting from {checkpoint_name}")
-            adapters_weights = torch.load(checkpoint_name)
+            adapters_weights = torch.load(checkpoint_name, weights_only=True)
             set_peft_model_state_dict(model, adapters_weights)
         else:
             print(f"Checkpoint {checkpoint_name} not found")
@@ -250,10 +249,13 @@ def train(
         train_data = data["train"].shuffle().map(generate_and_tokenize_prompt)
         val_data = None
 
+    print('------------- CUDA -------------')
+    print(f' - GPU device count: {torch.cuda.device_count()}')
     if not ddp and torch.cuda.device_count() > 1:
         # keeps Trainer from trying its own DataParallelism when more than 1 gpu is available
         model.is_parallelizable = True
         model.model_parallel = True
+        print(' - GPU run parallelizable')
 
     trainer = transformers.Trainer(
         model=model,

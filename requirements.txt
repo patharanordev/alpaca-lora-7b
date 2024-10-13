@@ -6,7 +6,15 @@ black
 black[jupyter]
 datasets
 fire
+
+# -----------------------------------------------
+# PEFT
+# version v0.5.0 <= 0.9.0, supports "prepare_model_for_kbit_training" method
+#git+https://github.com/huggingface/peft.git@v0.5.0
+#
+# But latest version used "prepare_model_for_kbit_training" instead
 git+https://github.com/huggingface/peft.git
+
 transformers==4.30.1
 sentencepiece
 gradio
